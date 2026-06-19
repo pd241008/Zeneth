@@ -1,35 +1,50 @@
 @import "tailwindcss";
 
 @theme {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-observatory-black: #010308;
+  --color-observatory-dark: #040a18;
+  --color-observatory-mid: #0a1628;
+  --color-cyan-telescope: #00e5ff;
+  --color-cyan-dim: rgba(0, 229, 255, 0.5);
+  --color-glass-edge: rgba(255, 255, 255, 0.04);
+  --font-mono: "Geist Mono", ui-monospace, SFMono-Regular, "SF Mono", Consolas, monospace;
 }
 
-/*
-  The default border color has changed to `currentColor` in Tailwind CSS v4,
-  so we've added these compatibility styles to make sure everything still
-  looks the same as it did with Tailwind CSS v3.
-
-  If we ever want to remove these styles, we need to add an explicit border
-  color utility to any element that depends on these defaults.
-*/
 @layer base {
   *,
   ::after,
   ::before,
   ::backdrop,
   ::file-selector-button {
-    border-color: var(--color-gray-200, currentColor);
+    border-color: var(--color-glass-edge, currentColor);
+  }
+
+  html {
+    background: var(--color-observatory-black);
+    color-scheme: dark;
+  }
+
+  body {
+    background: var(--color-observatory-black);
+    color: rgba(255, 255, 255, 0.85);
+    font-family: "Geist", system-ui, -apple-system, sans-serif;
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
+
+  ::selection {
+    background: rgba(0, 229, 255, 0.2);
+    color: #fff;
+  }
+
+  ::-webkit-scrollbar {
+    width: 0;
+    display: none;
   }
 }
 
-:root {
-  --background: #000000;
-  --foreground: #ffffff;
-}
-
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+@layer utilities {
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
 }

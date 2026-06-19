@@ -1,1 +1,14 @@
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Documentation
 docs/
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
