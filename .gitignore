@@ -1,3 +1,9 @@
+# Dependencies
+node_modules/
+
+# Next.js build output
+.next/
+
 # Environment files
 .env
 .env.local
@@ -9,6 +15,34 @@ docs/
 # Logs
 *.log
 
+# Go compiled binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary, build output
+*.test
+*.out
+
 # OS files
 .DS_Store
 Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*.swpx
+
+# Build artifacts
+/dist/
+build/
+*.log
+
+# Package manager files
+.yarn/
+.yarnrc.yml
+pnpm-lock.yaml
