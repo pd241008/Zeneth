@@ -17,8 +17,9 @@ export default function Rangefinder() {
   const unit = unitMap[mode];
 
   useEffect(() => {
-    if (!valueRef.current) return;
-    const obj = { value: parseInt(valueRef.current.dataset.prev || '0') };
+    const el = valueRef.current;
+    if (!el) return;
+    const obj = { value: parseInt(el.dataset.prev || '0') };
     const anim = animate(obj, {
       value: range,
       round: true,
@@ -33,10 +34,10 @@ export default function Rangefinder() {
     });
     return () => {
       anim.cancel();
-      if (valueRef.current) {
-        valueRef.current.dataset.prev = range.toString();
+      if (el) {
+        el.dataset.prev = range.toString();
       }
-    };  
+    };
   }, [range]);
 
   return (
