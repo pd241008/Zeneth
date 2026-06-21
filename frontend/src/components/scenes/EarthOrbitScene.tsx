@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useRef, useMemo } from 'react';
+import { useRef } from 'react';
 import { useObservatoryStore } from '@/store/observatoryStore';
+import OrbitDial from '@/components/ui/OrbitDial';
 
 interface Satellite {
   id: string;
@@ -35,8 +36,6 @@ function SatelliteDot({ sat }: { sat: Satellite }) {
 
 export default function EarthOrbitScene() {
   const mode = useObservatoryStore((s) => s.mode);
-  const setTarget = useObservatoryStore((s) => s.setTarget);
-  const setTrackingStatus = useObservatoryStore((s) => s.setTrackingStatus);
   const sceneRef = useRef<HTMLDivElement>(null);
 
   if (mode !== 'orbit') return null;
@@ -64,6 +63,11 @@ export default function EarthOrbitScene() {
         <span className="text-[10px] font-mono text-cyan-400/40 tracking-wider">
           EARTH OBSERVATION MODE — {SATELLITES.length} TRACKED OBJECTS
         </span>
+      </div>
+
+      {/* Compact OrbitDial as corner HUD readout */}
+      <div className="absolute bottom-28 right-8 z-20">
+        <OrbitDial size="compact" />
       </div>
     </div>
   );

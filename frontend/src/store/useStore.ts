@@ -1,10 +1,18 @@
 import { create } from 'zustand';
 
+interface CelestialObject {
+  id: string;
+  name: string;
+  type: 'satellite' | 'planet' | 'star' | 'constellation';
+  altitude?: number;
+  velocity?: number;
+}
+
 interface AppState {
   currentLocation: { lat: number; lng: number } | null;
-  selectedObject: any | null; // Placeholder for celestial object data
+  selectedObject: CelestialObject | null;
   setLocation: (lat: number, lng: number) => void;
-  setSelectedObject: (obj: any) => void;
+  setSelectedObject: (obj: CelestialObject | null) => void;
 }
 
 export const useStore = create<AppState>((set) => ({

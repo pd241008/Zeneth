@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { animate } from 'animejs';
 
 export default function OpticalEffects() {
   const glassRef = useRef<HTMLDivElement>(null);

@@ -5,7 +5,6 @@ import { animate } from 'animejs';
 import { useObservatoryStore } from '@/store/observatoryStore';
 
 const BREATH_DURATION = 3000;
-const TICK_EXTEND_DURATION = 200;
 
 export default function Crosshairs() {
   const crosshairRef = useRef<HTMLDivElement>(null);
