@@ -17,18 +17,11 @@ const C = {
 const VIEW = 400;
 const CX = VIEW / 2;
 const DIAL_R = 175;
-const TICK_INNER_R = 167;
-const TICK_SHORT_R = 180;
-const TICK_LONG_R = 190;
+const TICK_INNER_R = 152;
+const TICK_SHORT_R = 160;
+const TICK_LONG_R = 166;
 const NUM_TICKS = 180;
 const TICK_STEP_DEG = 360 / NUM_TICKS;
-
-const CIRCUM = 2 * Math.PI * DIAL_R;
-const ARC_CONFIGS = [
-  { dashArray: `${CIRCUM * 0.28} ${CIRCUM * 0.72}`, dashOffset: 0, baseOpacity: 0.4 },
-  { dashArray: `${CIRCUM * 0.22} ${CIRCUM * 0.78}`, dashOffset: -(CIRCUM * 0.28 + CIRCUM * 0.08), baseOpacity: 0.7 },
-  { dashArray: `${CIRCUM * 0.16} ${CIRCUM * 0.84}`, dashOffset: -(CIRCUM * 0.58 + CIRCUM * 0.08), baseOpacity: 1.0 },
-];
 
 const ORBITAL_PATH_D = 'M 50,200 C 50,80 180,60 350,200';
 
@@ -89,9 +82,7 @@ export default function OrbitDial({ size = 'hero', className = '' }: OrbitDialPr
   return (
     <>
       <style>{`
-        .og-ring { animation: og-spin 120s linear infinite; transform-origin: ${CX}px ${CX}px; }
         .ot-ring { animation: ot-spin 150s linear infinite; transform-origin: ${CX}px ${CX}px; }
-        @keyframes og-spin { to { transform: rotate(360deg); } }
         @keyframes ot-spin { to { transform: rotate(-360deg); } }
       `}</style>
       <div
@@ -127,10 +118,10 @@ export default function OrbitDial({ size = 'hero', className = '' }: OrbitDialPr
             d={`M ${CX - 120},${CX - 110} A 130,130 0 0,1 ${CX + 110},${CX - 110}`}
             fill="none"
             stroke="white"
-            strokeWidth={isCompact ? 3 : 6}
+            strokeWidth={isCompact ? 3 : 8}
             strokeLinecap="round"
-            opacity={0.08}
-            style={{ mixBlendMode: 'screen' }}
+            opacity={0.15}
+            style={{ mixBlendMode: 'screen', filter: 'blur(2px)' }}
           />
 
           {/* Tick marks (hover scale wrapper → counter-rotating inner) */}
@@ -150,8 +141,8 @@ export default function OrbitDial({ size = 'hero', className = '' }: OrbitDialPr
                   x2={tick.x2}
                   y2={tick.y2}
                   stroke={tick.isLong ? C.brass : C.starlight}
-                  strokeOpacity={tick.isLong ? 1 : 0.3}
-                  strokeWidth={tick.isLong ? 1.5 : 0.5}
+                  strokeOpacity={tick.isLong ? 0.6 : 0.15}
+                  strokeWidth={tick.isLong ? 1 : 0.5}
                 />
               ))}
             </g>
@@ -168,29 +159,7 @@ export default function OrbitDial({ size = 'hero', className = '' }: OrbitDialPr
             strokeOpacity={0.3}
           />
 
-          {/* Outer glow ring arcs (rotate) */}
-          <g className="og-ring" filter="url(#og-filter)">
-            {ARC_CONFIGS.map((arc, i) => (
-              <circle
-                key={i}
-                cx={CX}
-                cy={CX}
-                r={DIAL_R}
-                fill="none"
-                stroke={C.starlight}
-                strokeWidth={1.5}
-                strokeDasharray={arc.dashArray}
-                strokeDashoffset={arc.dashOffset}
-                strokeLinecap="round"
-                style={{
-                  strokeOpacity: isHovered
-                    ? Math.min(arc.baseOpacity * 1.5, 1)
-                    : arc.baseOpacity,
-                  transition: 'stroke-opacity 300ms ease',
-                }}
-              />
-            ))}
-          </g>
+          {/* Outer glow ring arcs removed to emphasize glass instead of HUD */}
 
           {/* Tracking dot */}
           <circle
