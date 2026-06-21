@@ -7,6 +7,12 @@
   --color-cyan-telescope: #00e5ff;
   --color-cyan-dim: rgba(0, 229, 255, 0.5);
   --color-glass-edge: rgba(255, 255, 255, 0.04);
+  --color-void: #05070D;
+  --color-near-field: #0E1626;
+  --color-starlight: #8FB4FF;
+  --color-brass: #D9C28A;
+  --color-eyepiece-white: #F4F1EA;
+  --color-flare: #FF6A39;
   --font-mono: "Geist Mono", ui-monospace, SFMono-Regular, "SF Mono", Consolas, monospace;
 }
 
@@ -28,8 +34,9 @@
     background: var(--color-observatory-black);
     color: rgba(255, 255, 255, 0.85);
     font-family: "Geist", system-ui, -apple-system, sans-serif;
-    overflow: hidden;
-    overscroll-behavior: none;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior-y: none;
   }
 
   ::selection {
