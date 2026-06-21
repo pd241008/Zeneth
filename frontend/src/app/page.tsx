@@ -18,11 +18,19 @@ export default function Home() {
 
   const maskRadius = useTransform(pageScroll, [0, 0.667], [200, 40], { clamp: true });
   const maskImage = useTransform(maskRadius, (r) =>
-    `radial-gradient(circle at center, transparent 0%, transparent ${r}%, ${C.void} ${r + 0.1}%, ${C.void} 100%)`,
+    `radial-gradient(circle at center, transparent 0%, transparent ${Math.max(0, r - 6)}%, black ${r + 2}%, black 100%)`,
   );
-  const rimBg = useTransform(maskRadius, (r) =>
-    `radial-gradient(circle at center, transparent 0%, transparent ${Math.max(0, r - 4)}%, rgba(0,0,0,0.3) ${Math.max(0, r - 0.3)}%, transparent ${r}%), ${C.void}`,
-  );
+  const rimBg = useTransform(maskRadius, (r) => {
+    const rBase = Math.max(0, r);
+    return `radial-gradient(circle at center, 
+      transparent 0%, 
+      transparent ${Math.max(0, rBase - 8)}%, 
+      rgba(5, 7, 13, 0.6) ${Math.max(0, rBase - 1)}%, 
+      rgba(255, 50, 0, 0.1) ${rBase}%, 
+      rgba(0, 120, 255, 0.1) ${rBase + 0.5}%, 
+      ${C.void} ${rBase + 3}%, 
+      ${C.void} 100%)`;
+  });
 
   return (
     <main className="relative bg-[#010308]">
