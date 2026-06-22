@@ -1,10 +1,16 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
-	"os"
+
+	"project-zenith-backend/internal/api"
+	"project-zenith-backend/internal/config"
+	"project-zenith-backend/internal/ingestion"
+	"project-zenith-backend/internal/propagation"
+	"project-zenith-backend/internal/storage"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -12,36 +18,52 @@ import (
 )
 
 func main() {
+	cfg := config.Load()
+
+	db, err := storage.Connect(cfg.ClickHouseDSN)
+	if err != nil {
+		log.Fatalf("Failed to connect to ClickHouse: %v", err)
+	}
+
+	ctx := context.Background()
+	if err := db.InitSchema(ctx); err != nil {
+		log.Fatalf("Failed to initialize schema: %v", err)
+	}
+
+	ingestion.StartPipeline(ctx, cfg, db)
+
+	apiHandler := api.NewAPI(db)
+	propagator := propagation.NewPropagator()
+	wsHub := api.NewWSHub(db, propagator)
+
+	go wsHub.StartBroadcasting()
+
 	r := chi.NewRouter()
 
-	// Middleware
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:3000"}, // Allow Next.js frontend
+		AllowedOrigins:   []string{"http://localhost:3000"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 		ExposedHeaders:   []string{"Link"},
 		AllowCredentials: true,
-		MaxAge:           300, // Maximum value not ignored by any of major browsers
+		MaxAge:           300,
 	}))
 
-	// Basic route
-	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("Welcome to Project Zenith API!"))
-	})
-	
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("OK"))
 	})
 
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080"
-	}
+	r.Route("/api", func(r chi.Router) {
+		r.Get("/objects", apiHandler.SearchObjectsHandler)
+		r.Get("/objects/{id}", apiHandler.GetObjectHandler)
+	})
 
-	fmt.Printf("Server starting on port %s\n", port)
-	if err := http.ListenAndServe(":"+port, r); err != nil {
+	r.Get("/ws", wsHub.HandleWS)
+
+	fmt.Printf("Server starting on port %s\n", cfg.Port)
+	if err := http.ListenAndServe(":"+cfg.Port, r); err != nil {
 		log.Fatalf("Server failed to start: %v", err)
 	}
 }
