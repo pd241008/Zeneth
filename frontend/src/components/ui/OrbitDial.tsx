@@ -36,10 +36,10 @@ function generateTicks() {
     const isLong = i % 10 === 0;
     const outerR = isLong ? TICK_LONG_R : TICK_SHORT_R;
     ticks.push({
-      x1: CX + TICK_INNER_R * sin,
-      y1: CX - TICK_INNER_R * cos,
-      x2: CX + outerR * sin,
-      y2: CX - outerR * cos,
+      x1: +(CX + TICK_INNER_R * sin).toFixed(6),
+      y1: +(CX - TICK_INNER_R * cos).toFixed(6),
+      x2: +(CX + outerR * sin).toFixed(6),
+      y2: +(CX - outerR * cos).toFixed(6),
       isLong,
     });
   }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useMemo } from 'react';
+import { useRef, useMemo, useEffect, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 
@@ -63,7 +63,7 @@ function generateStarData(config: StarLayerConfig, seed: number) {
   return { pos, col, siz };
 }
 
-function StarLayer({ config, seed }: { config: StarLayerConfig; seed: number }) {
+function StarLayer({ config, seed, visible }: { config: StarLayerConfig; seed: number; visible: boolean }) {
   const ref = useRef<THREE.Points>(null);
 
   const geometry = useMemo(() => {
@@ -76,10 +76,9 @@ function StarLayer({ config, seed }: { config: StarLayerConfig; seed: number }) 
   }, [config, seed]);
 
   useFrame((_, delta) => {
-    if (ref.current) {
-      ref.current.rotation.y += delta * config.rotationSpeed.y;
-      ref.current.rotation.x += delta * config.rotationSpeed.x;
-    }
+    if (!visible || !ref.current) return;
+    ref.current.rotation.y += delta * config.rotationSpeed.y;
+    ref.current.rotation.x += delta * config.rotationSpeed.x;
   });
 
   return (
@@ -88,7 +87,7 @@ function StarLayer({ config, seed }: { config: StarLayerConfig; seed: number }) 
         size={config.baseSize * 0.8}
         vertexColors
         transparent
-        opacity={config.opacity}
+        opacity={visible ? config.opacity : 0}
         sizeAttenuation
         depthWrite={false}
         blending={THREE.AdditiveBlending}
@@ -100,15 +99,29 @@ function StarLayer({ config, seed }: { config: StarLayerConfig; seed: number }) 
 const SEEDS = LAYERS.map((_, i) => i * 7919 + 1);
 
 export default function Starfield() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(true);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setVisible(entry.isIntersecting),
+      { threshold: 0 },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <div className="absolute inset-0 z-0">
+    <div ref={containerRef} className="absolute inset-0 z-0">
       <Canvas
         camera={{ position: [0, 0, 500], fov: 60 }}
         gl={{ antialias: false, alpha: false }}
         dpr={[1, 1.5]}
       >
         {LAYERS.map((config, i) => (
-          <StarLayer key={i} config={config} seed={SEEDS[i]} />
+          <StarLayer key={i} config={config} seed={SEEDS[i]} visible={visible} />
         ))}
       </Canvas>
     </div>

@@ -8,6 +8,7 @@ node_modules/
 .env
 .env.local
 .env.*.local
+.env*
 
 # Documentation
 docs/
@@ -40,9 +41,11 @@ Thumbs.db
 # Build artifacts
 /dist/
 build/
-*.log
 
 # Package manager files
 .yarn/
 .yarnrc.yml
 pnpm-lock.yaml
+
+# Compiled binaries
+backend/main
