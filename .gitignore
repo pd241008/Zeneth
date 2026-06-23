@@ -48,4 +48,3 @@ build/
 pnpm-lock.yaml
 
 # Compiled binaries
-backend/main
