@@ -14,3 +14,6 @@ docs/
 Thumbs.db
 
 .env*
+
+# Backend build
+backend/main

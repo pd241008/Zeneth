@@ -18,6 +18,10 @@ func StartPipeline(ctx context.Context, cfg *config.Config, db *storage.DB) {
 		if err != nil {
 			log.Printf("Initial CelesTrak fetch failed: %v", err)
 		}
+		err = FetchNASAHorizons(ctx, cfg.HorizonsAPIURL, db)
+		if err != nil {
+			log.Printf("Initial Horizons fetch failed: %v", err)
+		}
 	}()
 
 	ticker := time.NewTicker(6 * time.Hour)
@@ -31,7 +35,10 @@ func StartPipeline(ctx context.Context, cfg *config.Config, db *storage.DB) {
 					log.Printf("Scheduled CelesTrak fetch failed: %v", err)
 				}
 				
-				FetchNASAHorizons(ctx, cfg.HorizonsAPIURL, db)
+				err = FetchNASAHorizons(ctx, cfg.HorizonsAPIURL, db)
+				if err != nil {
+					log.Printf("Scheduled Horizons fetch failed: %v", err)
+				}
 			case <-ctx.Done():
 				log.Println("Stopping data ingestion pipeline...")
 				ticker.Stop()

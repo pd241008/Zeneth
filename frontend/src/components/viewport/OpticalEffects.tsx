@@ -8,16 +8,24 @@ export default function OpticalEffects() {
   useEffect(() => {
     if (!glassRef.current) return;
 
+    let rafId: number | null = null;
     const handleMouse = (e: MouseEvent) => {
-      if (!glassRef.current) return;
-      const x = (e.clientX / window.innerWidth) * 100;
-      const y = (e.clientY / window.innerHeight) * 100;
-      glassRef.current.style.background =
-        `radial-gradient(ellipse at ${x}% ${y}%, rgba(255,255,255,0.025) 0%, transparent 50%)`;
+      if (rafId !== null) return;
+      rafId = requestAnimationFrame(() => {
+        if (!glassRef.current) return;
+        const x = (e.clientX / window.innerWidth) * 100;
+        const y = (e.clientY / window.innerHeight) * 100;
+        glassRef.current.style.background =
+          `radial-gradient(ellipse at ${x}% ${y}%, rgba(255,255,255,0.025) 0%, transparent 50%)`;
+        rafId = null;
+      });
     };
 
     window.addEventListener('mousemove', handleMouse);
-    return () => window.removeEventListener('mousemove', handleMouse);
+    return () => {
+      window.removeEventListener('mousemove', handleMouse);
+      if (rafId !== null) cancelAnimationFrame(rafId);
+    };
   }, []);
 
   return (
