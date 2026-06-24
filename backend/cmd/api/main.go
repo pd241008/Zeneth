@@ -20,17 +20,23 @@ import (
 func main() {
 	cfg := config.Load()
 
-	db, err := storage.Connect(cfg.ClickHouseDSN)
-	if err != nil {
-		log.Fatalf("Failed to connect to ClickHouse: %v", err)
+	var db *storage.DB
+	if cfg.ClickHouseDSN != "" {
+		var err error
+		db, err = storage.Connect(cfg.ClickHouseDSN)
+		if err != nil {
+			log.Printf("Failed to connect to ClickHouse: %v", err)
+		} else {
+			ctx := context.Background()
+			if err := db.InitSchema(ctx); err != nil {
+				log.Printf("Failed to initialize schema: %v", err)
+			} else {
+				ingestion.StartPipeline(ctx, cfg, db)
+			}
+		}
+	} else {
+		log.Println("Skipping ClickHouse connection and ingestion pipeline (DSN empty)")
 	}
-
-	ctx := context.Background()
-	if err := db.InitSchema(ctx); err != nil {
-		log.Fatalf("Failed to initialize schema: %v", err)
-	}
-
-	ingestion.StartPipeline(ctx, cfg, db)
 
 	apiHandler := api.NewAPI(db)
 	propagator := propagation.NewPropagator()

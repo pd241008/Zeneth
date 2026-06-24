@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"encoding/json"
 	"log"
 	"net/http"
 	"sync"
@@ -16,8 +17,9 @@ import (
 
 var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool {
-		// Allow Next.js frontend
-		return true 
+		// Restrict to Next.js frontend origin
+		origin := r.Header.Get("Origin")
+		return origin == "http://localhost:3000" || origin == "http://127.0.0.1:3000"
 	},
 }
 
@@ -25,7 +27,7 @@ var upgrader = websocket.Upgrader{
 type WSHub struct {
 	db         *storage.DB
 	propagator *propagation.Propagator
-	clients    map[*websocket.Conn]bool
+	clients    map[*websocket.Conn]string
 	mu         sync.Mutex
 }
 
@@ -33,7 +35,7 @@ func NewWSHub(db *storage.DB, propagator *propagation.Propagator) *WSHub {
 	return &WSHub{
 		db:         db,
 		propagator: propagator,
-		clients:    make(map[*websocket.Conn]bool),
+		clients:    make(map[*websocket.Conn]string),
 	}
 }
 
@@ -46,7 +48,8 @@ func (h *WSHub) HandleWS(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.mu.Lock()
-	h.clients[conn] = true
+	// Default to ISS
+	h.clients[conn] = "NORAD-25544"
 	h.mu.Unlock()
 
 	log.Printf("Client connected. Total clients: %d", len(h.clients))
@@ -61,9 +64,22 @@ func (h *WSHub) HandleWS(w http.ResponseWriter, r *http.Request) {
 		}()
 
 		for {
-			_, _, err := conn.ReadMessage()
+			_, msg, err := conn.ReadMessage()
 			if err != nil {
 				break
+			}
+
+			var data struct {
+				Action string `json:"action"`
+				ID     string `json:"id"`
+			}
+			if err := json.Unmarshal(msg, &data); err == nil {
+				if data.Action == "subscribe" && data.ID != "" {
+					h.mu.Lock()
+					h.clients[conn] = data.ID
+					h.mu.Unlock()
+					log.Printf("Client subscribed to %s", data.ID)
+				}
 			}
 		}
 	}()
@@ -79,20 +95,50 @@ func (h *WSHub) StartBroadcasting() {
 			h.mu.Unlock()
 			continue
 		}
-		
-		tle, err := h.db.GetTLE(context.Background(), "NORAD-25544")
-		var telemetry models.Telemetry
 
-		if err == nil {
-			telemetry, _ = h.propagator.CalculatePosition(tle, time.Now())
+		if h.db == nil {
+			// Mock telemetry when ClickHouse is unavailable
+			telemetry := models.Telemetry{
+				ObjectID:  "NORAD-25544",
+				Timestamp: time.Now(),
+				Latitude:  0.0,
+				Longitude: 0.0,
+				Altitude:  400.0,
+			}
+			for client := range h.clients {
+				err := client.WriteJSON(telemetry)
+				if err != nil {
+					client.Close()
+					delete(h.clients, client) // safe because we're locking WSHub
+				}
+			}
+			h.mu.Unlock()
+			continue
 		}
 
-		for client := range h.clients {
-			err := client.WriteJSON(telemetry)
+		// Group clients by subscribed object ID
+		subs := make(map[string][]*websocket.Conn)
+		for client, id := range h.clients {
+			subs[id] = append(subs[id], client)
+		}
+
+		for id, clients := range subs {
+			tle, err := h.db.GetTLE(context.Background(), id)
 			if err != nil {
-				log.Printf("Error broadcasting to client: %v", err)
-				client.Close()
-				delete(h.clients, client)
+				continue
+			}
+
+			telemetry, err := h.propagator.CalculatePosition(tle, time.Now())
+			if err != nil {
+				continue
+			}
+
+			for _, client := range clients {
+				err := client.WriteJSON(telemetry)
+				if err != nil {
+					client.Close()
+					delete(h.clients, client)
+				}
 			}
 		}
 		h.mu.Unlock()

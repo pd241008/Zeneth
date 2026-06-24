@@ -27,6 +27,11 @@ func (api *API) SearchObjectsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if api.db == nil {
+		http.Error(w, "Database not available", http.StatusServiceUnavailable)
+		return
+	}
+
 	results, err := api.db.SearchObjects(r.Context(), query)
 	if err != nil {
 		http.Error(w, "Failed to search objects", http.StatusInternalServerError)
@@ -42,6 +47,11 @@ func (api *API) GetObjectHandler(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		http.Error(w, "Object ID is required", http.StatusBadRequest)
+		return
+	}
+
+	if api.db == nil {
+		http.Error(w, "Database not available", http.StatusServiceUnavailable)
 		return
 	}
 

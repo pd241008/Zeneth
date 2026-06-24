@@ -31,7 +31,7 @@ func Load() *Config {
 
 	chDSN := os.Getenv("CLICKHOUSE_DSN")
 	if chDSN == "" {
-		log.Fatal("CLICKHOUSE_DSN is not set in the environment")
+		log.Println("CLICKHOUSE_DSN is not set in the environment. Operating without database.")
 	}
 
 	horizonsURL := os.Getenv("HORIZONS_API_URL")
